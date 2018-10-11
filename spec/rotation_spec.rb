@@ -1,12 +1,27 @@
 require 'reward'
 require 'json'
 require 'set'
+require 'rspec/expectations'
+
+RSpec::Matchers.define :be_equal_hash_within do |tolerance, expected|
+	match do |actual|
+		Set.new(actual.keys) == Set.new(expected.keys) && actual.keys.all?{|k|
+			(actual[k] - expected[k]).abs < tolerance
+		}
+	end #match
+
+	diffable
+end #Matchers.define :be_equal_hash_within
 
 RSpec.describe Rotation, "" do
+	before(:all) do
+		$relics_by_id = Hash.new
+		$relics_by_name = Hash.new
+	end
 	#tests
 	context "Interception T1 [A]" do
 		before(:all) do
-			@reward = Rotation.new([{
+			@reward = Rotation.new(JSON.parse('{ "rewards": [{
 				"_id": "c0400ac7082c2f3d811e47ca9b7a8ae8",
 				"itemName": "Vitality",
 				"rarity": "Uncommon",
@@ -56,7 +71,7 @@ RSpec.describe Rotation, "" do
 				"itemName": "Lith B5 Relic",
 				"rarity": "Uncommon",
 				"chance": 10
-			}]) # Interception T1 Rotation A as of 2018-10-04
+			}]}')["rewards"]) # Interception T1 Rotation A as of 2018-10-04
 		end #before(:all)
 
 		describe '@num_by_tier' do
@@ -64,25 +79,34 @@ RSpec.describe Rotation, "" do
 				expect(@reward.num_by_tier).to eql({
 					Lith: 6,
 					non: 4,
-					any: 6,
+					relic: 6,
 					all: 10
 				})
 			end #it knows num of rewards
 		end #describe @num_by_tier
 
+		def float_eq(a,b,tolerance)
+			return Math.abs(a-b) < tolerance
+		end
+		def float_hash_eq(a,b,tolerance)
+			return (keys = Set.new(a.keys)) == Set.new(b.keys) && keys.all{|k|
+				float_eq(a[k],b[k],tolerance)
+			}
+		end
+
 		describe '@chance_tier' do
 			it "knows the chances of each tier" do
-				expect(@reward.chance_tier).to eql({
+				expect(@reward.chance_tier).to be_equal_hash_within(1e-7, {
 					Lith: 0.6,
 					non: 0.4,
-					any: 0.6
+					relic: 0.6
 				})
 			end #it knows chance of tier
 		end #describe '@chance_tier'
 
 		describe '@chance_each' do
 			it "knows the avg chance of a single reward" do
-				expect(@reward.chance_each).to eql({
+				expect(@reward.chance_each).to be_equal_hash_within(1e-7, {
 					Lith: 0.1,
 					non: 0.1
 				})
