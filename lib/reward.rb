@@ -1,4 +1,4 @@
-#!/bin/ruby
+require 'set'
 
 class Relic
 	attr_reader :chance, :id
@@ -11,37 +11,71 @@ class Relic
 	def fullname() return $relics_by_id[@id][:fullName] end
 end #class Relic
 
-def newRelic(jh)
-	rid = jh["_id"]; return nil unless rid
-	unless ((r = $relics_by_id[rid]))
-		r = ($relics_by_id[rid] = Hash.new)
-		arr = jh["itemName"].split
-		r[:tier] = arr[0].intern
-		r[:name] = arr[1]
-		r[:fullName] = jh["itemName"]
-		# if not $relics_by_name[r[:tier]]
-		# 	$relics_by_name[r[:tier]] = {r[:name] => {nodes: []}}
-		# elsif not $relics_by_name[r[:tier]][r[:name]]
-		# 	$relics_by_name[r[:tier]][r[:name]] = {nodes: []}
-		# end #if
-	end #unless
-	relic = $relics_by_name[r[:tier]][r[:name]]
-	relic[:id] = rid unless relic[:id]
-	chance = jh["chance"].to_f / 100.0
-	return Relic.new(rid,chance)
+def newReward(jh)
+	if jh["itemName"].end_with? "Relic"
+		rid = jh["_id"]; return nil unless rid
+		unless ((r = $relics_by_id[rid]))
+			r = ($relics_by_id[rid] = Hash.new)
+			arr = jh["itemName"].split
+			r[:tier] = arr[0].intern
+			r[:name] = arr[1]
+			r[:fullName] = jh["itemName"]
+			# if not $relics_by_name[r[:tier]]
+			# 	$relics_by_name[r[:tier]] = {r[:name] => {nodes: []}}
+			# elsif not $relics_by_name[r[:tier]][r[:name]]
+			# 	$relics_by_name[r[:tier]][r[:name]] = {nodes: []}
+			# end #if
+		end #unless
+		# relic = $relics_by_name[r[:tier]][r[:name]]
+		# relic[:id] = rid unless relic[:id]
+		chance = jh["chance"].to_f / 100.0
+		return Relic.new(rid,chance)
+	else
+		return OtherReward.new(jh)
+	end #if jh["itemName"] ends with "Relic"
 end #def newRelic
 
 class OtherReward
-	attr_reader :chance, :name
+	attr_reader :chance, :name, :tier
 	def initialize(reward)
 		@id = reward["_id"]
 		@name = reward["itemName"]
 		@chance = reward["chance"].to_f / 100.0
+		@tier = :non
 	end
 end
 
 class Rotation
 	attr_reader :num_by_tier, :chance_tier, :chance_each, :tiers
 	def initialize(pool)
+		# puts "#{pool}" #DEBUG
+		@rewards = Hash.new
+		@num_by_tier = {relic: 0, all: 0}
+		@chance_tier = {relic: 0}
+		@chance_each = Hash.new
+		@tiers = Set.new
+		pool.each{|reward|
+			# puts "#{reward}" #DEBUG
+			item = newReward(reward)
+			tier = item.tier
+			if not @rewards.has_key? tier
+				@rewards[tier] = Set[item]
+			else
+				@rewards[tier].add(item)
+			end #if not @rewards.has_key? tier
+			@tiers.add(tier)
+		} #pool.each
+		@rewards.each{|tier, set|
+			num = set.length
+			chance = set.sum{|reward| reward.chance}
+			@num_by_tier[tier] = num
+			@num_by_tier[:all] += num
+			@chance_tier[tier] = chance
+			@chance_each[tier] = chance / num
+			if :non != tier
+				@num_by_tier[:relic] += num
+				@chance_tier[:relic] += chance
+			end
+		} #rewards.each
 	end #Rotation.new
 end #class Rotation
