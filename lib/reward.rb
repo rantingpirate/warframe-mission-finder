@@ -65,17 +65,29 @@ class Rotation
 			end #if not @rewards.has_key? tier
 			@tiers.add(tier)
 		} #pool.each
-		@rewards.each{|tier, set|
-			num = set.length
-			chance = set.sum{|reward| reward.chance}
-			@num_by_tier[tier] = num
-			@num_by_tier[:all] += num
-			@chance_tier[tier] = chance
-			@chance_each[tier] = chance / num
-			if :non != tier
-				@num_by_tier[:relic] += num
-				@chance_tier[:relic] += chance
-			end
-		} #rewards.each
+		if 1 == @tiers.length
+			k = @tiers.to_a[0]
+			num = @num_by_tier[:all] = @num_by_tier[k] = @rewards[k].length
+			ch = @chance_tier[k] = 1.0
+			if :non != k
+				@num_by_tier[:relic] = num
+				@chance_tier[:relic] = ch
+			end #if k isn't :non
+			@chance_each[k] = ch / num
+		else
+			@rewards.each{|tier, set|
+				num = set.length
+				chance = 1 == @tiers.length ? 1.0 : set.sum{|reward| reward.chance}
+				@num_by_tier[tier] = num
+				@num_by_tier[:all] += num
+				@chance_tier[tier] = chance
+				@chance_each[tier] = chance / num
+				if :non != tier
+					@num_by_tier[:relic] += num
+					@chance_tier[:relic] += chance
+				end
+			} #rewards.each
+			@chance_tier[:relic] = 1.0 if not @tiers.include? :non
+		end
 	end #Rotation.new
 end #class Rotation
