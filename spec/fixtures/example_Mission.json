@@ -1,0 +1,19 @@
+{
+	"Class": [{
+		"name": "Tier Mode (PlanetNode)",
+		"data": "data goes here",
+		"tiers": [],
+		"answers": {
+			"num_by_tier": {
+			},
+			"chance_tier": {
+			},
+			"mean_tier": {
+			},
+			"chance_each": {
+			},
+			"mean_each": {
+			}
+		}
+	}]
+}
