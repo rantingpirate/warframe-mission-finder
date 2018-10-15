@@ -198,6 +198,33 @@
 		},
 		"tiers": ["meso", "neo", "non"],
 		"answers": {
+			"num_by_tier": {
+				"non": 21,
+				"Meso": 7,
+				"Neo": 9,
+				"relic": 16,
+				"all": 37
+			},
+			"chance_tier": {
+				"Meso": [0.2258, 0.7742],
+				"Neo": [0.7741, 0.2259],
+				"non": [0.0, 0.0, 1.0],
+				"relic": [0.0, 1.0]
+			},
+			"chance_each": {
+				"Meso": [0.8894, 0.1106],
+				"Neo": [0.9749, 0.0251]
+			},
+			"mean_tier": {
+				"Meso": 0.7742,
+				"Neo": 0.2259,
+				"non": 2.0,
+				"relic": 1.0
+			},
+			"mean_each": {
+				"Meso": 0.1106,
+				"Neo": 0.0251
+			}
 		}
 	}, {
 	"name": "Earth Sabotage (EarthCervantes)",
@@ -338,6 +365,20 @@
 	},
 	"tiers": ["non"],
 	"answers": {
+			"num_by_tier": {
+				"non": 23,
+				"all": 23
+			},
+			"chance_tier": {
+				"non": [0.0, 0.0, 0.0, 1.0]
+			},
+			"mean_tier": {
+				"non": 3.0
+			},
+			"chance_each": {
+			},
+			"mean_each": {
+			}
 	}
 	}]
 }
