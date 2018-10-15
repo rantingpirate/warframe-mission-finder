@@ -83,7 +83,8 @@
 			"chance_tier": { "non": [0.0, 1.0] },
 			"mean_tier": { "non": 1.0 },
 			"chance_each": {},
-			"mean_each": {}
+			"mean_each": {},
+			"tier_rot": {"non": ["nil"]}
 		}
 	}]
 }

@@ -224,6 +224,11 @@
 			"mean_each": {
 				"Meso": 0.1106,
 				"Neo": 0.0251
+			},
+			"tier_rot": {
+				"Meso": ["B"],
+				"Neo": ["B"],
+				"non": ["A", "C"]
 			}
 		}
 	}, {
@@ -378,6 +383,9 @@
 			"chance_each": {
 			},
 			"mean_each": {
+			},
+			"tier_rot": {
+				"non": ["A", "B", "C"]
 			}
 	}
 	}]

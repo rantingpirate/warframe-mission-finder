@@ -393,6 +393,12 @@
 				"Lith": 0.138,
 				"Meso": 0.0917,
 				"Neo": 0.0158
+			},
+			"tier_rot": {
+				"Lith": ["A"],
+				"Meso": ["A","B"],
+				"Neo": ["C"],
+				"non": ["A","B","C"]
 			}
 		}
 	}, {
@@ -614,6 +620,11 @@
 		"mean_each": {
 			"Meso": 0.1818,
 			"Neo": 0.1699
+		},
+		"tier_rot": {
+			"Meso": ["A"],
+			"Neo": ["B", "C"],
+			"non": ["A", "B"]
 		}
 	}, {
 	"name": "D4 Survival (ErisZabala)",
@@ -749,6 +760,11 @@
 		"mean_each": {
 			"Neo": 0.1111,
 			"Axi": 0.1429
+		},
+		"tier_rot": {
+			"Neo": ["B"],
+			"Axi": ["C"],
+			"non": ["A", "C"]
 		}
 	}
 	}]
