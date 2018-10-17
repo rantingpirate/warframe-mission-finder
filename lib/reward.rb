@@ -54,7 +54,6 @@ class Rotation
 		@num_by_tier = {relic: 0, all: 0}
 		@chance_tier = {relic: 0}
 		@chance_each = Hash.new
-		@tiers = Set.new
 		pool.each{|reward|
 			# puts "#{reward}" #DEBUG
 			item = newReward(reward)
@@ -64,8 +63,8 @@ class Rotation
 			else
 				@rewards[tier].add(item)
 			end #if not @rewards.has_key? tier
-			@tiers.add(tier)
 		} #pool.each
+		@tiers = Set.new(@rewards.keys)
 		if 1 == @tiers.length
 			k = @tiers.to_a[0]
 			num = @num_by_tier[:all] = @num_by_tier[k] = @rewards[k].length
@@ -73,8 +72,8 @@ class Rotation
 			if :non != k
 				@num_by_tier[:relic] = num
 				@chance_tier[:relic] = ch
+				@chance_each[k] = ch / num
 			end #if k isn't :non
-			@chance_each[k] = ch / num
 		else
 			@rewards.each{|tier, set|
 				num = set.length
@@ -82,13 +81,15 @@ class Rotation
 				@num_by_tier[tier] = num
 				@num_by_tier[:all] += num
 				@chance_tier[tier] = chance
-				@chance_each[tier] = chance / num
 				if :non != tier
+					@chance_each[tier] = chance / num
 					@num_by_tier[:relic] += num
 					@chance_tier[:relic] += chance
 				end
 			} #rewards.each
 			@chance_tier[:relic] = 1.0 if not @tiers.include? :non
 		end
+		@num_by_tier.delete_if{|k,v| 0 == v}
+		@chance_tier.delete_if{|k,v| 0 == v}
 	end #Rotation.new
 end #class Rotation

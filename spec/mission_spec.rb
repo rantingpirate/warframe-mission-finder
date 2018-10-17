@@ -14,7 +14,11 @@ RSpec.shared_context :Mission do |mc, testsets|
 		ts[:answers].transform_keys!{|k| k.intern}
 			.values.each{|v| v.transform_keys!{|k| k.intern}}
 		ts[:answers][:tier_rot].transform_values!{|v|
-			Set.new(v.map{|r| "nil" == r ? nil : r.intern})
+			if ["nil"] == v
+				nil
+			else
+				Set.new(v.map{|r| r.intern})
+			end
 		}
 				it "##{i+1} (#{ts[:name]}) knows the number of rewards per rotation" do
 					expect(ts[:mission].num_by_tier).to eql(ts[:answers][:num_by_tier])
