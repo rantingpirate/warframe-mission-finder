@@ -1,4 +1,5 @@
 require 'set'
+require "globals"
 
 class Relic
 	attr_reader :chance, :id
@@ -36,7 +37,7 @@ def newReward(jh)
 end #def newRelic
 
 class OtherReward
-	attr_reader :chance, :name, :tier
+	attr_reader :chance, :name, :tier, :id
 	def initialize(reward)
 		@id = reward["_id"]
 		@name = reward["itemName"]
@@ -46,7 +47,7 @@ class OtherReward
 end
 
 class Rotation
-	attr_reader :num_by_tier, :chance_tier, :chance_each, :tiers
+	attr_reader :num_by_tier, :chance_tier, :chance_each, :tiers, :rewards
 	def initialize(pool)
 		# puts "#{pool}" #DEBUG
 		@rewards = Hash.new
