@@ -443,7 +443,8 @@
 					"Meso": 7,
 					"Neo": 9,
 					"relic": 22,
-					"non": 36
+					"non": 36,
+					"all": 58
 				},
 				"chance_tier": {
 					"Lith": [0.343396,0.485208,0.171396],
@@ -715,6 +716,7 @@
 					"Meso": 7,
 					"Neo": 9,
 					"non": 12,
+					"all": 28,
 					"relic": 16
 				},
 				"chance_tier": {
@@ -880,7 +882,8 @@
 					"Neo": 9,
 					"Axi": 6,
 					"non": 4,
-					"relic": 15
+					"relic": 15,
+					"all": 19
 				},
 				"chance_tier": {
 					"Neo": [0.0, 1.0],

@@ -10,3 +10,16 @@ RSpec::Matchers.define :be_equal_hash_within do |tolerance, expected|
 	diffable
 end #Matchers.define :be_equal_hash_within
 
+RSpec::Matchers.define :be_equal_array_hash_within do |tolerance, expected|
+	match do |actual|
+		Set.new(actual.keys) == Set.new(expected.keys) &&
+			actual.keys.all?{|k|
+			actual[k].length == expected[k].length &&
+				actual[k].all?.with_index{|v,i|
+				(v - expected[k][i]).abs < tolerance
+			}
+		}
+	end #match
+
+	diffable
+end #Matchers.define :be_equal_array_hash_within
