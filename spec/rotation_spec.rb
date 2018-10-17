@@ -2,9 +2,7 @@ require 'reward'
 require 'json'
 require 'set'
 require "match_fhasheq"
-
-$relics_by_id = Hash.new
-$relics_by_name = Hash.new
+require "globals"
 
 $test_sets = JSON.parse(File.read('spec/fixtures/rotation.json'))["testsets"]
 $test_sets.each{|ts|

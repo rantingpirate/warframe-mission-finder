@@ -2,6 +2,7 @@ require 'mission'
 require 'json'
 require 'set'
 require 'match_fhasheq'
+require 'globals'
 
 # Put json in fixtures/mission.json
 # json = Hash.new
@@ -64,7 +65,7 @@ end #shared_examples Mission
 RSpec.shared_examples :MissionClass do |mission_class|
 	cname = mission_class.name
 	testsets = JSON.parse(File.read("spec/fixtures/#{cname}.json"))[cname]
-	RSpec.define "#{cname}" do
+	describe "#{cname}" do
 		testsets.each.with_index{|ts, i|
 			ts.transform_keys!{|k| k.intern}
 			ts[:mission] = mission_class.new(ts[:data])
