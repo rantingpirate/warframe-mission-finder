@@ -7,16 +7,16 @@ class Relic
 		@id = id
 		@chance = chance
 	end #def Relic.new
-	def tier() return $relics_by_id[@id][:tier] end
-	def name() return $relics_by_id[@id][:name] end
-	def fullname() return $relics_by_id[@id][:fullName] end
+	def tier() return $relics[@id][:tier] end
+	def name() return $relics[@id][:name] end
+	def fullname() return $relics[@id][:fullName] end
 end #class Relic
 
 def newReward(jh)
 	if jh["itemName"].end_with? "Relic"
 		rid = jh["_id"]; return nil unless rid
-		unless ((r = $relics_by_id[rid]))
-			r = ($relics_by_id[rid] = Hash.new)
+		unless ((r = $relics[rid]))
+			r = ($relics[rid] = Hash.new)
 			arr = jh["itemName"].split
 			r[:tier] = arr[0].intern
 			r[:name] = arr[1]

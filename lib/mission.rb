@@ -33,6 +33,29 @@ def chMean(chances)
 	return mean
 end
 
+class RewardPool
+	attr_reader :id
+	def initialize(hash)
+		@id = hash
+	end #def RewardPool.new
+
+	def planets()
+		return $pools[@id][:nodes].map{|n| $nodes[n][:planet]}
+	end #def RewardPool.planets
+
+	def nodes()
+		return $pools[@id][:nodes].map{|n| $nodes[n]}
+	end #def RewardPool.nodes
+
+	def node_ids()
+		return $pools[@id][:nodes]
+	end #def RewardPool.node_ids
+
+	def pool()
+		return $pools[@id]
+	end #def RewardPool.pool
+end #class RewardPool
+
 module RotatingMission
 	attr_reader :num_by_tier, :chance_tier, :chance_each, :mean_tier, :mean_each, :tier_rot
 	def __rmInit(pool,keyl)
@@ -76,23 +99,26 @@ module RotatingMission
 	end #def __rmInit1
 end #module RotatingMission
 
-class Endless
+class Endless < RewardPool
 	include RotatingMission
-	def initialize(pool)
+	def initialize(pool, hash)
+		super(hash)
 		__rmInit(pool, [:A, :A, :B, :C])
 	end #def Endless.new
 end #class Endless
 
-class Rotated
+class Rotated < RewardPool
 	include RotatingMission
-	def initialize(pool)
+	def initialize(pool, hash)
+		super(hash)
 		__rmInit(pool, [:A, :B, :C])
 	end #def Rotated.new
 end #class Rotated
 
-class Single
+class Single < RewardPool
 	attr_reader :chance_tier, :mean_tier, :chance_each, :mean_each, :tier_rot
-	def initialize(pool)
+	def initialize(pool, hash)
+		super(hash)
 		@rewards = Rotation.new(pool)
 		@chance_tier = @rewards.chance_tier.transform_values{|v| [1-v, v]}
 		@mean_tier = @rewards.chance_tier

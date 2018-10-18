@@ -10,7 +10,7 @@ RSpec.shared_context :Mission do |mc, testsets|
 	testsets.each.with_index{|ts, i|
 		ts.transform_keys!{|k| k.intern}
 		ts[:i] = i
-		ts[:mission] = mc.new(ts[:data])
+		ts[:mission] = mc.new(ts[:data], mc.name + "-Hash")
 		ts[:answers].transform_keys!{|k| k.intern}
 			.values.each{|v| v.transform_keys!{|k| k.intern}}
 		ts[:answers][:tier_rot].transform_values!{|v|
@@ -50,17 +50,6 @@ RSpec.shared_context :Mission do |mc, testsets|
 				end
 	} #testsets.each
 end #shared_examples Mission
-
-
-RSpec.shared_context :MissionClass do |mission_class|
-	cname = mission_class.name
-	testsets = JSON.parse(File.read("spec/fixtures/#{cname}.json"))[cname]
-	describe "#{cname}" do
-		testsets.each.with_index{|ts, i|
-			include_context :Mission, mission_class, ts
-		} #testsets.each
-	end #RSpec.define "#{cname}"
-end #shared_examples MissionClass
 
 RSpec.describe Endless do
 	testsets = JSON.parse(File.read("spec/fixtures/Endless.json"))["Endless"]
