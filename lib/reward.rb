@@ -1,5 +1,5 @@
 require 'set'
-require "globals"
+require_relative "globals"
 
 class Relic
 	attr_reader :chance, :id

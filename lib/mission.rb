@@ -1,6 +1,6 @@
-require 'reward'
+require_relative 'reward'
 require 'set'
-require "globals"
+require_relative "globals"
 
 RELIC_TIERS = [:Lith, :Meso, :Neo, :Axi]
 
@@ -34,26 +34,25 @@ def chMean(chances)
 end
 
 class RewardPool
-	attr_reader :id
-	def initialize(hash)
+	attr_reader :id, :nodes, :mode, :tier
+	def initialize(hash, mode, tier)
 		@id = hash
+		@nodes = Set.new
+		@mode = mode
+		@tier = tier
 	end #def RewardPool.new
 
-	def planets()
-		return $pools[@id][:nodes].map{|n| $nodes[n][:planet]}
-	end #def RewardPool.planets
+	def add_node(node)
+		@nodes.add(node)
+	end
 
-	def nodes()
-		return $pools[@id][:nodes].map{|n| $nodes[n]}
-	end #def RewardPool.nodes
+	def fetch_nodes()
+		return @nodes.map{|id| $nodes[id]}
+	end
 
-	def node_ids()
-		return $pools[@id][:nodes]
-	end #def RewardPool.node_ids
-
-	def pool()
-		return $pools[@id]
-	end #def RewardPool.pool
+	def mission_type()
+		return self.class.name.intern
+	end
 end #class RewardPool
 
 module RotatingMission
@@ -101,24 +100,24 @@ end #module RotatingMission
 
 class Endless < RewardPool
 	include RotatingMission
-	def initialize(pool, hash)
-		super(hash)
+	def initialize(pool, *info)
+		super(*info)
 		__rmInit(pool, [:A, :A, :B, :C])
 	end #def Endless.new
 end #class Endless
 
 class Rotated < RewardPool
 	include RotatingMission
-	def initialize(pool, hash)
-		super(hash)
+	def initialize(pool, *info)
+		super(*info)
 		__rmInit(pool, [:A, :B, :C])
 	end #def Rotated.new
 end #class Rotated
 
 class Single < RewardPool
 	attr_reader :chance_tier, :mean_tier, :chance_each, :mean_each, :tier_rot
-	def initialize(pool, hash)
-		super(hash)
+	def initialize(pool, *info)
+		super(*info)
 		@rewards = Rotation.new(pool)
 		@chance_tier = @rewards.chance_tier.transform_values{|v| [1-v, v]}
 		@mean_tier = @rewards.chance_tier
