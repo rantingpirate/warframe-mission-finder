@@ -5,6 +5,8 @@ require 'set'
 require 'pathname'
 require 'json'
 
+# encoding: UTF-8
+
 $drop_data_dir = Pathname.new('warframe-drop-data') + 'data'
 $data_dir = Pathname.new('data')
 $data_filename = 'nodes.dat'
@@ -32,7 +34,7 @@ DARK_NODES = multimapmulti([
 PLANET_TIERS = multimapmulti([
 	[:T1, [:Earth, :Venus, :Mercury, :Mars, :Phobos]],
 	[:T2, [:Ceres, :Jupiter, :Europa, :Saturn]],
-	[:T3, [:Uranus, :Lua, :Neptuno, :Pluto, :"Kuva Fortress", :Sedna, :Eris]]
+	[:T3, [:Uranus, :Lua, :Neptune, :Pluto, :"Kuva Fortress", :Sedna, :Eris]]
 ]) #PLANET_TIERS
 VOID_NODES = {
 	VoidTaranis: :T1,
@@ -95,7 +97,9 @@ PLANET_NUMS = {
 	VoidMarduk: 18.2,
 	VoidMithra: 18.3,
 	VoidMot: 18.4,
-	Eris: 19
+	Eris: 19,
+	Derelict: 21,
+	Sanctuary: 42
 }
 
 def planet_sort(a,b)
@@ -143,28 +147,28 @@ def parse_planets(json)
 end #def parse_planets
 
 def new_node(planet, node, data)
-	pool_id = data["rewards"].hash #might need to convert to string first. We'll see...
+	data.transform_keys!{|k| k.intern}
+	pool_id = data[:rewards].hash #might need to convert to string first. We'll see...
 	node_id = planet.dup.concat(node).intern
 	if not $pools.has_key? pool_id
-		data = data.transform_keys{|k| k.intern}
 		mode = data[:gameMode].intern
 		tier = mission_tier(mode, planet.intern, node_id)
-		mode = :Survxcavation if Set[:Survival, :Excavation].include? mode and Set[:T2, :T3].include? tier
+		# mode = :Survxcavation if Set[:Survival, :Excavation].include? mode and Set[:T2, :T3].include? tier
 		pool = $pools[pool_id] = new_reward(data[:rewards], pool_id, mode, tier)
 		pool.tier_rot.keys.each{|k|
 			#if not non or relic, add to $pools_by_tier
 			$pools_by_tier[k].add(pool_id) unless Set[:all, :non].include? k
 		}
-	else
-		$pools[pool_id].add_node(node_id)
-		$nodes[node_id] = {
-			pool: pool_id,
-			planet: planet.intern,
-			name: node.intern,
-			id: node_id,
-			fullName: "#{node}, #{planet}"
-		}
 	end
+	$pools[pool_id].add_node(node_id)
+	$nodes[node_id] = {
+		pool: pool_id,
+		planet: planet.intern,
+		name: node.intern,
+		isEvent: data[:isEvent],
+		id: node_id,
+		fullName: "#{node}, #{planet}"
+	}
 end #def new_node
 
 def new_reward(data, pool_id, gamemode, tier)
@@ -177,7 +181,23 @@ def new_reward(data, pool_id, gamemode, tier)
 	end
 end #def new_reward
 
-def best_nodes(tier = :relic, num = nil, poolType: nil)
+def meansort(a,b,t,rev=false,each: false)
+	if each
+		as = a.mean_each[t] || 0
+		bs = b.mean_each[t] || 0
+	else
+		as = a.mean_tier[t] || 0
+		bs = b.mean_tier[t] || 0
+	end
+	if rev
+		return bs <=> as
+	else
+		return as <=> bs
+	end #if reverse
+end #def meansort
+
+
+def best_nodes(tier = :relic, num = nil, poolType: nil, each: false)
 	if :relic == tier
 		pool = $pools.values
 	else
@@ -187,11 +207,11 @@ def best_nodes(tier = :relic, num = nil, poolType: nil)
 
 	if num
 		return pool.max(num){|a,b|
-			a.mean_tier[tier] || 0 <=> b.mean_tier[tier] || 0
-		}
+			meansort(a,b,tier,each: each)
+		} #.sort!{|a,b| meansort(a,b,tier,true,each: each)}
 	else
 		return pool.max{|a,b|
-			a.mean_tier[tier] || 0 <=> b.mean_tier[tier] || 0
+			meansort(a,b,tier,each: each)
 		}
 	end #if num
 end #def best_nodes
@@ -237,7 +257,8 @@ end #def deser
 
 def update_data()
 	puts "Updating data..."
-	parse_planets(JSON.parse(File.read($drop_data_dir + 'missionRewards.json'))["missionRewards"])
+	json = File.open($drop_data_dir + 'missionRewards.json', "r:UTF-8", &:read)
+	parse_planets(JSON.parse(json)["missionRewards"])
 	copy_info
 	ser [$pools, $nodes, $relics, $pools_by_tier, $relics_by_name]
 end # def update_data

@@ -4,6 +4,7 @@ require_relative "lib/globals"
 require_relative "lib/mission"
 
 def jround(num, sf, pre = "", is_percent: false, show_percent: true, min_places: nil)
+	num = num || 0
 	num *= 100 if is_percent
 	after = (is_percent and show_percent) ? "%%" : ""
 	places = (0 == num) ? 1 : (Math.log10 num).floor + 1
@@ -36,7 +37,8 @@ def simple_display(pool, reward_tier, is_each = false)
 	end
 
 	numsOne = jround(mean, 3)
-	numsTwo = "[#{chance.map{|ch| jround(ch, 3, is_percent: true)}.join(", ")}]"
+	numsTwo = ""
+	numsTwo = "[#{chance.map{|ch| jround(ch, 3, is_percent: true)}.join(", ")}]" if chance
 
 	if not is_each and RELIC_TIERS.include? reward_tier
 		numsOne.concat("/#{jround(pool.mean_tier[:relic], 3)}")
@@ -44,8 +46,10 @@ def simple_display(pool, reward_tier, is_each = false)
 
 	puts "#{header}: #{numsOne} #{numsTwo}"
 	pool.fetch_nodes
-		.sort{|a,b| planet_sort(a,b)}
-		.each{|p| puts "  #{p[:fullName]}"}
+		.sort{|a,b|
+			planet_sort(a,b)
+		}
+		.each{|p| puts "  #{p[:fullName]}#{p[:isEvent] ? " [Event]" : ""}"}
 end
 
 load_data()

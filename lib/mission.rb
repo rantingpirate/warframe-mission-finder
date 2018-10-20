@@ -2,8 +2,10 @@ require_relative 'reward'
 require 'set'
 require_relative "globals"
 
-RELIC_TIERS = [:Lith, :Meso, :Neo, :Axi]
+# encoding: UTF-8
 
+RELIC_TIERS = [:Lith, :Meso, :Neo, :Axi]
+EXCAV_MUL = 2
 
 def addChances(chances)
 	n = 1
@@ -84,11 +86,22 @@ module RotatingMission
 			@num_by_tier[:relic] -= @num_by_tier[:non] if @num_by_tier.has_key? :non
 		end #if there are any relics
 		aabc = @rotations.fetch_values(*keyl)
+		if :Excavation == @mode
+			aabcex = aabc * EXCAV_MUL
+			@chance_tier_ex = Hash.new
+			@mean_tier_ex = Hash.new
+		end
 		@num_by_tier.reject{|k,_v| :all == k}.each{|tier,num|
 			@chance_tier[tier] = chancePermutations(
 				aabc.map{|r| r.chance_tier[tier] || 0.0}
 			)
 			@mean_tier[tier] = chMean(@chance_tier[tier])
+			if :Excavation == @mode
+				@chance_tier_ex[tier] = chancePermutations(
+					aabcex.map{|r| r.chance_tier[tier] || 0.0}
+				)
+				@mean_tier_ex[tier] = chMean(@chance_tier_ex[tier])
+			end
 		}.select{|k,v| RELIC_TIERS.include? k}.each{|tier,num|
 			@chance_each[tier] = chancePermutations(
 				aabc.map{|r| r.chance_each[tier] || 0.0}
@@ -104,6 +117,20 @@ class Endless < RewardPool
 		super(*info)
 		__rmInit(pool, [:A, :A, :B, :C])
 	end #def Endless.new
+	def chance_tier()
+		if :Excavation == @mode
+			return @chance_tier_ex
+		else
+			return @chance_tier
+		end
+	end
+	def mean_tier()
+		if :Excavation == @mode
+			return @mean_tier_ex
+		else
+			return @mean_tier
+		end
+	end #def mean_tier
 end #class Endless
 
 class Rotated < RewardPool
