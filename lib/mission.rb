@@ -71,9 +71,9 @@ module RotatingMission
 		@tier_rot = Hash.new
 		@rotations.each{|k,r| r.tiers.each{|t|
 			if @tier_rot.has_key? t
-				@tier_rot[t].add(k)
+				@tier_rot[t].push(k)
 			else
-				@tier_rot[t] = Set[k]
+				@tier_rot[t] = [k]
 			end
 			rewards_by_tier[t] = Set.new unless rewards_by_tier.has_key? t
 			rewards_by_tier[t].merge(r.rewards[t].to_a.map{|rwd| rwd.id.intern})

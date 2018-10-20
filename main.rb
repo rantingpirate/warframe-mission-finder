@@ -20,13 +20,13 @@ def simple_display(pool, reward_tier, is_each = false)
 	header = ""
 	header.concat("#{pool.tier} ") if pool.tier
 	header.concat(pool.mode.to_s)
-	if pool.tier_rot.has_key? reward_tier && pool.tier_rot[reward_tier]
-		rot = pool.tier_rot[reward_tier].to_a.sort
+	if pool.tier_rot.has_key? reward_tier and pool.tier_rot[reward_tier]
+		rot = pool.tier_rot[reward_tier].sort
 		if :Endless == pool.mission_type && :A == rot[0]
 			#Endless missions rotate AABC, not ABC
 			rot.unshift(:A)
 		end #if pool.mission_type == Endless
-		header.concat(" [#{rot.join("")}]")
+		header.concat(" [#{rot.map{|r| r.to_s}.join("")}]")
 	end #if pool.tier_rot[reward_tier]
 	if is_each
 		mean = pool.mean_each[reward_tier]
