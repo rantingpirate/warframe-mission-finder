@@ -26,6 +26,9 @@ def simple_display(pool, reward_tier, is_each = false)
 			#Endless missions rotate AABC, not ABC
 			rot.unshift(:A)
 		end #if pool.mission_type == Endless
+		if :Excavation == pool.mode
+			rot *= EXCAV_MUL
+		end
 		header.concat(" [#{rot.map{|r| r.to_s}.join("")}]")
 	end #if pool.tier_rot[reward_tier]
 	if is_each
@@ -46,10 +49,11 @@ def simple_display(pool, reward_tier, is_each = false)
 
 	puts "#{header}: #{numsOne} #{numsTwo}"
 	pool.fetch_nodes
+		.select{|n| not n[:isEvent]}
 		.sort{|a,b|
 			planet_sort(a,b)
 		}
-		.each{|p| puts "  #{p[:fullName]}#{p[:isEvent] ? " [Event]" : ""}"}
+		.each{|n| puts "  #{n[:fullName]}#{n[:isEvent] ? " [Event]" : ""}"}
 end
 
 load_data()
