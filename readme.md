@@ -1,4 +1,4 @@
-# Warframe Relic Missions
+# warframe-mission-finder
 
 Uses WFCD drop tables to find the best missions for farming relics, etc.
 
