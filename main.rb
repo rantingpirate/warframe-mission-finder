@@ -1,3 +1,5 @@
+#!/bin/ruby
+
 require_relative "lib/data"
 require_relative "lib/reward"
 require_relative "lib/globals"
