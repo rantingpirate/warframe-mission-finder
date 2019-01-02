@@ -62,8 +62,11 @@ load_data()
 (RELIC_TIERS.to_a + [:relic]).each{|tier|
 	puts "#{tier}:"
 	best_nodes(tier, 3, poolType: :Endless).each{|p|
-		simple_display(p, tier)
+		simple_display(p, tier, is_each: true)
 		puts ""
 	}
+	if (p = best_nodes(tier, poolType: :Endless, voidonly: true))
+		simple_display(p, tier, is_each: true)
+	end
 	puts ""
 }

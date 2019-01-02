@@ -21,7 +21,7 @@ def multimapmulti(list, map = nil)
 	return map
 end
 
-$void_diff = false
+$void_diff = true
 
 ENDLESS_MODES = Set[:Defection, :Defense, :Excavation, :"Infested Salvage", :Interception, :"Sanctuary Onslaught", :Survival, :Survxcavation]
 DARK_NODES = multimapmulti([
@@ -117,7 +117,7 @@ def mission_tier(mode, planet, node_id, void_diff: nil)
 	void_diff = $void_diff if nil === void_diff
 	if :Derelict == planet
 		return :OD
-	elsif void_diff and :Void == planet
+	elsif ((void_diff == nil and $void_diff) or void_diff) and :Void == planet
 		return VOID_TIERS[node_id]
 	elsif ARCHWING_NODES.include? node_id
 		return :AW
@@ -197,13 +197,14 @@ def meansort(a,b,t,rev=false,each: false)
 end #def meansort
 
 
-def best_nodes(tier = :relic, num = nil, poolType: nil, each: false)
+def best_nodes(tier = :relic, num = nil, poolType: nil, each: false, voidonly: false)
 	if :relic == tier
 		pool = $pools.values
 	else
 		pool = $pools_by_tier[tier].to_a.map{|p| $pools[p]}
 	end
 	pool.select!{|p| poolType == p.class.name.intern} if poolType
+	pool.select!{|p| p.tier.to_s.start_with? "V"} if voidonly
 
 	if num
 		return pool.max(num){|a,b|
