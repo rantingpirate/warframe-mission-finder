@@ -5,6 +5,8 @@ require 'set'
 require 'pathname'
 require 'json'
 
+DATA_VERSION = 2
+
 # encoding: UTF-8
 
 $drop_data_dir = Pathname.new('warframe-drop-data') + 'data'
@@ -20,8 +22,6 @@ def multimapmulti(list, map = nil)
 	list.each{|to,l| l.each{|n|map[n] = to}}
 	return map
 end
-
-$void_diff = true
 
 ENDLESS_MODES = Set[:Defection, :Defense, :Excavation, :"Infested Salvage", :Interception, :"Sanctuary Onslaught", :Survival, :Survxcavation]
 DARK_NODES = multimapmulti([
@@ -113,11 +113,10 @@ def planet_sort(a,b)
 end
 
 
-def mission_tier(mode, planet, node_id, void_diff: nil)
-	void_diff = $void_diff if nil === void_diff
+def mission_tier(mode, planet, node_id)
 	if :Derelict == planet
 		return :OD
-	elsif ((void_diff == nil and $void_diff) or void_diff) and :Void == planet
+	elsif $vault_open and :Void == planet
 		return VOID_TIERS[node_id]
 	elsif ARCHWING_NODES.include? node_id
 		return :AW
@@ -197,14 +196,15 @@ def meansort(a,b,t,rev=false,each: false)
 end #def meansort
 
 
-def best_nodes(tier = :relic, num = nil, poolType: nil, each: false, voidonly: false)
+def best_nodes(tier = :relic, num = nil, poolType: nil, each: false, voidnodes: nil)
 	if :relic == tier
 		pool = $pools.values
 	else
 		pool = $pools_by_tier[tier].to_a.map{|p| $pools[p]}
 	end
 	pool.select!{|p| poolType == p.class.name.intern} if poolType
-	pool.select!{|p| p.tier.to_s.start_with? "V"} if voidonly
+	pool.select!{|p| p.tier.to_s.start_with? "V"} if :only == voidnodes
+	pool.select!{|p| not p.tier.to_s.start_with? "V"} if :none == voidnodes
 
 	if num
 		return pool.max(num){|a,b|
@@ -243,31 +243,68 @@ def ser(nodes)
 	File.write(datafile(), Marshal.dump(nodes))
 end
 
-def copy_info()
-	File.write(infofile(), File.read($drop_data_dir + 'info.json'))
-end
-
 def deser()
 	#TODO: Make this debug/verbose only
 	$stderr.puts "Using data file '#{datafile()}'" #DEBUG
+	data = nil
 
 	File.open(datafile()){|f|
-		$pools, $nodes, $relics, $pools_by_tier, $relics_by_name = Marshal.load(f)
+		data = Marshal.load(f)
 	} #File.open(datafile())
+	if nil == $vault_open then
+		$vault_open = data[:vault_open]
+		$pools, $nodes, $relics, $pools_by_tier, $relics_by_name = data.values_at(:pools, :nodes, :relics, :pools_by_tier, :relics_by_name)
+	elsif $vault_open != data[:vault_open] then
+		load_data(true)
+	else
+		$pools, $nodes, $relics, $pools_by_tier, $relics_by_name = data.values_at(:pools, :nodes, :relics, :pools_by_tier, :relics_by_name)
+	end
 end #def deser
 
-def update_data()
+def update_data(manifest)
 	puts "Updating data..."
+	manifest["data_version"] = DATA_VERSION
 	json = File.open($drop_data_dir + 'missionRewards.json', "r:UTF-8", &:read)
 	parse_planets(JSON.parse(json)["missionRewards"])
-	copy_info
-	ser [$pools, $nodes, $relics, $pools_by_tier, $relics_by_name]
+	File.open(infofile(), "w") { |f|
+		f.write(JSON.pretty_generate(manifest))
+	}
+	ser({
+		:pools	=> $pools,
+		:nodes	=> $nodes,
+		:relics	=> $relics,
+		:pools_by_tier	=> $pools_by_tier,
+		:relics_by_name	=> $relics_by_name,
+		:vault_open	=> !!$vault_open
+	})
 end # def update_data
 
+def valid_data?(info, manifest)
+	return false if not info
+	return false if info["data_version"] != DATA_VERSION
+	return false if info["hash"] != manifest["hash"]
+	return true
+end
+
 def load_data(force = nil)
-	info_file = infofile()
-	if force or nil === force and not (File.exists?(info_file) and File.read(info_file) == File.read($drop_data_dir + 'info.json'))
-		update_data
+	info_file = infofile();
+	info = File.file?(info_file) ? JSON.parse(File.open(info_file, "r:UTF-8", &:read)) : nil
+	manifest = JSON.parse(File.open($drop_data_dir + 'info.json', "r:UTF-8", &:read))
+	if force or (nil === force and not valid_data?(info,manifest)) then
+		if info_file and info["modified"] > manifest["modified"] then
+			# error
+			puts("Drop data is older than saved data! Aborting.")
+			exit 1
+		else
+			if nil == $vault_open and File.file?(datafile()) then
+				data = nil
+				File.open(datafile()){|f| data = Marshal.load(f)}
+				if data.respond_to?(:fetch) and (vo = data.fetch(:vault_open, nil)) != nil then
+					$vault_open = vo
+				end
+			end
+			update_data manifest
+		end
 	else
 		deser
 	end

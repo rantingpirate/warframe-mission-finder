@@ -5,6 +5,16 @@ require_relative "lib/reward"
 require_relative "lib/globals"
 require_relative "lib/mission"
 
+require 'optparse'
+
+$display_each = nil
+$force_reparse = nil
+$show_void = nil
+$num_best = 3
+$num_void = 1
+
+EACH_DEFAULT = false
+
 def jround(num, sf, pre = "", is_percent: false, show_percent: true, min_places: nil)
 	num = num || 0
 	num *= 100 if is_percent
@@ -33,7 +43,7 @@ def simple_display(pool, reward_tier, is_each = false)
 		end
 		header.concat(" [#{rot.map{|r| r.to_s}.join("")}]")
 	end #if pool.tier_rot[reward_tier]
-	if is_each
+	if is_each then
 		mean = pool.mean_each[reward_tier]
 		chance = pool.chance_each[reward_tier]
 	else
@@ -58,15 +68,63 @@ def simple_display(pool, reward_tier, is_each = false)
 		.each{|n| puts "  #{n[:fullName]}#{n[:isEvent] ? " [Event]" : ""}"}
 end
 
-load_data()
+parser = OptionParser.new do |parser|
+	parser.on("-e", "--each", "Print the chance and mean for a specific relic") do
+		$display_each = :each
+	end
+	parser.on("-a", "--all", "Print the chance and mean for some relic") do
+		$display_each = :all
+	end
+	parser.on("-f", "--force-reparse", "Re-parse the drop data, even if up-to-date") do
+		$force_reparse = true
+	end
+	parser.on("-n", "--number", "=[NUMBER]", Integer, "Print this many nodes per tier") do |n|
+		$num_best = n
+	end
+	parser.on("-N", "--num-vault", "--num-void", "=[NUMBER]", Integer, "Print this many void missions per tier") do |n|
+		$num_void = n
+	end
+	parser.on("--vault", "Parse the drop data for the vault being open.") do
+		$vault_open = true
+	end
+	parser.on("--no-vault", "Parse the drop data for the vault being closed.") do
+		$vault_open = false
+	end
+	parser.on("-v", "--void-only", "Only show void missions.") do
+		$show_void = :only
+	end
+	parser.on("-V", "--no-void", "Don't show void missions.") do
+		$show_void = :none
+	end
+end
+
+parser.parse!(ARGV)
+tiers = ARGV.length > 0 ? ARGV.map{|t| t.downcase().intern} : RELIC_TIERS.to_a + [:relic]
+
+load_data($force_reparse)
+puts "each is #{$display_each}" #DEBUG #EACH
 (RELIC_TIERS.to_a + [:relic]).each{|tier|
 	puts "#{tier}:"
-	best_nodes(tier, 3, poolType: :Endless).each{|p|
-		simple_display(p, tier, is_each: true)
+	eachopt = (nil == $display_each) ? EACH_DEFAULT : ($display_each == :each)
+	puts "eachopt for #{$display_each}, #{EACH_DEFAULT} is #{eachopt}"
+	puts "true and false is #{true and false}"
+	iseach = (RELIC_TIERS.include?(tier) and eachopt)
+	puts "iseach for #{tier}, #{$display_each}, #{EACH_DEFAULT} is #{iseach}" #DEBUG #EACH
+	nodes = best_nodes(tier, $num_best, poolType: :Endless, each: iseach, voidnodes: $show_void)
+	if $num_best then
+		nodes.each{|p|
+			simple_display(p, tier, is_each: iseach)
+			puts ""
+		}
+	else
+		simple_display(nodes, tier, is_each: iseach)
 		puts ""
-	}
-	if (p = best_nodes(tier, poolType: :Endless, voidonly: true))
-		simple_display(p, tier, is_each: true)
+	end
+	if $num_void and $num_void > 0 and nil == $show_void then
+		best_nodes(tier, $num_void, poolType: :Endless, each: iseach, voidnodes: :only).each{|p|
+			simple_display(p, tier, is_each: iseach)
+			puts ""
+		}
 	end
 	puts ""
 }
