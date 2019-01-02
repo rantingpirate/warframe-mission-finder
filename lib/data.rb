@@ -299,7 +299,7 @@ def load_data(force = nil)
 			if nil == $vault_open and File.file?(datafile()) then
 				data = nil
 				File.open(datafile()){|f| data = Marshal.load(f)}
-				if data.respond_to?(:fetch) and (vo = data.fetch(:vault_open, nil)) != nil then
+				if data.instance_of?(Hash) and (vo = data[:vault_open]) != nil then
 					$vault_open = vo
 				end
 			end

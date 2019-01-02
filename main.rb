@@ -102,27 +102,23 @@ parser.parse!(ARGV)
 tiers = ARGV.length > 0 ? ARGV.map{|t| t.downcase().intern} : RELIC_TIERS.to_a + [:relic]
 
 load_data($force_reparse)
-puts "each is #{$display_each}" #DEBUG #EACH
 (RELIC_TIERS.to_a + [:relic]).each{|tier|
 	puts "#{tier}:"
 	eachopt = (nil == $display_each) ? EACH_DEFAULT : ($display_each == :each)
-	puts "eachopt for #{$display_each}, #{EACH_DEFAULT} is #{eachopt}"
-	puts "true and false is #{true and false}"
 	iseach = (RELIC_TIERS.include?(tier) and eachopt)
-	puts "iseach for #{tier}, #{$display_each}, #{EACH_DEFAULT} is #{iseach}" #DEBUG #EACH
 	nodes = best_nodes(tier, $num_best, poolType: :Endless, each: iseach, voidnodes: $show_void)
 	if $num_best then
 		nodes.each{|p|
-			simple_display(p, tier, is_each: iseach)
+			simple_display(p, tier, iseach)
 			puts ""
 		}
 	else
-		simple_display(nodes, tier, is_each: iseach)
+		simple_display(nodes, tier, iseach)
 		puts ""
 	end
 	if $num_void and $num_void > 0 and nil == $show_void then
 		best_nodes(tier, $num_void, poolType: :Endless, each: iseach, voidnodes: :only).each{|p|
-			simple_display(p, tier, is_each: iseach)
+			simple_display(p, tier, iseach)
 			puts ""
 		}
 	end
