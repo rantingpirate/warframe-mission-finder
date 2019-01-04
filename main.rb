@@ -98,11 +98,21 @@ parser = OptionParser.new do |parser|
 	end
 end
 
+def relicaps(t)
+	if RELIC_TIERS.include? t.capitalize().intern 
+		return t.capitalize().intern
+	else
+		return t.downcase().intern
+	end
+end
+
+
+
 parser.parse!(ARGV)
-tiers = ARGV.length > 0 ? ARGV.map{|t| t.downcase().intern} : RELIC_TIERS.to_a + [:relic]
+tiers = ARGV.length <= 0 ? RELIC_TIERS.to_a + [:relic] : ARGV.map{|t| relicaps t}
 
 load_data($force_reparse)
-(RELIC_TIERS.to_a + [:relic]).each{|tier|
+tiers.each{|tier|
 	puts "#{tier}:"
 	eachopt = (nil == $display_each) ? EACH_DEFAULT : ($display_each == :each)
 	iseach = (RELIC_TIERS.include?(tier) and eachopt)
@@ -124,3 +134,4 @@ load_data($force_reparse)
 	end
 	puts ""
 }
+
