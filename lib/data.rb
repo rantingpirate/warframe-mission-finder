@@ -64,6 +64,7 @@ ODD_NODES = {
 	"Kuva FortressPago": :KF,
 	LuaPlato: :Lua,
 	LuaPavlov: :Lua,
+    LuaApollo: :Lua,
 	"Kuva FortressDakata": :KF
 } #ODD_NODES
 ONE_TIER_MODES = [:Arena, :Capture, :"Mobile Defense"]
